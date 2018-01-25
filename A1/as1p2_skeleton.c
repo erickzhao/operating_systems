@@ -22,7 +22,7 @@ and falls under the McGill code of conduct, to the best of my knowledge.
 //pointer to Linked list head
 struct node *head_job = NULL;
 
-//pointer to
+//pointer to current job in Linked list
 struct node *current_job = NULL;
 
 //global variable used to store process id of process
@@ -53,18 +53,19 @@ void addToJobList(char *args[])
     if (head_job == NULL)
     {
         //init the job number with 1
-        
+        job->number = 1;
         //set its pid from the global variable process_id
-        
+        job->pid = process_id;
         //cmd can be set to arg[0]
-        
+        job->cmd = args[0];
         //set the job->next to point to NULL.
-        
+        job->next = NULL;
         //set the job->spawn using time function
         job->spawn = (unsigned int)time(NULL);
         //set head_job to be the job
-        
+        head_job = job;
         //set current_job to be head_job
+        current_job = head_job;
         
     }
 
@@ -72,20 +73,33 @@ void addToJobList(char *args[])
     else
     {
         //point current_job to head_job
-        
+        current_job = head_job;
+        int count = 1;
         //traverse the linked list to reach the last job
-        
-
-
+        while ((*current_job).next != NULL) {
+            current_job = (*current_job).next;
+            count++;
+        }
 
         //init all values of the job like above num,pid,cmd.spawn
-        
+        struct node *job = malloc(sizeof(struct node));
+        //init the job number with 1
+        job->number = count;
+        //set its pid from the global variable process_id
+        job->pid = process_id;
+        //cmd can be set to arg[0]
+        job->cmd = args[0];
+        //set the job->next to point to NULL.
+        job->next = NULL;
+        //set the job->spawn using time function
+        job->spawn = (unsigned int)time(NULL);
         
         //make next of current_job point to job
-        
+        current_job->next = job;
         //make job to be current_job
-        
+        current_job = job;
         //set the next of job to be NULL
+        job->next = NULL;
         
     }
 }
