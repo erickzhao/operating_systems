@@ -85,8 +85,8 @@ void addToJobList(char *args[])
         struct node *job = malloc(sizeof(struct node));
         //init the job number with 1
         job->number = count;
-        //set its pid from the global variable process_id
-        job->pid = process_id;
+        //set new pid 
+        job->pid = (current_job->pid) + 1;
         //cmd can be set to arg[0]
         job->cmd = args[0];
         //set the job->next to point to NULL.
