@@ -127,17 +127,24 @@ void refreshJobList()
         //use waitpid to init ret_pid variable
         ret_pid = waitpid(current_job->pid, NULL, WNOHANG);
         //one of the below needs node removal from linked list
-        if (ret_pid == 0)
+        if (ret_pid == 0) // process has not exited
         {
-            //what does this mean
-            //do the needful
-            
+            // move to next job
+            current_job = current_job->next;
         }
-        else
+        else // process has exited:
         {
-            //what does this mean
-            //do the needful
-            
+            // remove process from list
+            // do this by deep copying next job onto current job
+            struct node *next_job = current_job->next;
+            current_job->pid = next_job->pid;
+            current_job->number = next_job->number;
+            current_job->cmd = next_job->cmd;
+            current_job->spawn = next_job->spawn;
+            current_job->next = next_job->next;
+
+            // free memory from original next job
+            free(next_job);
         }
     }
     return;
@@ -153,6 +160,7 @@ void listAllJobs()
     refreshJobList();
 
     //init current_job with head_job
+    current_job = head_job;
 
     //heading row print only once.
     printf("\nID\tPID\tCmd\tstatus\tspawn-time\n");
