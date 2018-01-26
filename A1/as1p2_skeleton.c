@@ -167,7 +167,6 @@ void listAllJobs()
         
         //traverse the linked list and print using the following statement for each job
             printf("%d\t%d\t%s\tRUNNING\t%s\n", current_job->number, current_job->pid, current_job->cmd, ctime(&(current_job->spawn)));
-
         
     return;
 }
@@ -189,17 +188,62 @@ void waitForEmptyLL(int nice, int bg)
     return;
 }
 
+int isWhitespace (char c) {
+    return c == '\n' || c == ' ' || c == '\t';
+}
+
 //function to perform word count
  int wordCount(char *filename,char* flag)
 {
-    int cnt;
+    int     cnt;
+    char    buf;
+
+    int fd = open(filename, O_RDONLY, 0666);
+
     //if flag is l 
     //count the number of lines in the file 
     //set it in cnt
 
+    if (flag == "l") {
+        cnt++; // increment initially to account for first line before newline
+        while(1) {
+            // break on EOF
+            if (!read(fd, &buf, 1)) {
+                break;
+            };
+            // if newline encountered, increment count;
+            if (buf == '\n') {
+                cnt++;
+            }
+        }
+    }
+
     //if flag is w
     //count the number of words in the file
     //set it in cnt
+
+    if (flag == "w") {
+        // keep flag to track if we're in a word or not
+        int in_word = 0; 
+        while(1) {
+            // break on EOF
+            if (!read(fd, &buf, 1)) {
+                break;
+            };
+
+            // if in word and we see whitespace character, then set that we're not in word
+            // if not in word and we see non-whitespace character, then set that we're in word
+            // and increment to increase word count.
+
+            // this deals with many whitespace characters chained together
+            if (in_word && isWhitespace(buf)) {
+                in_word = 0;
+            } else if (!in_word && !isWhitespace(buf)) {
+                in_word = 1;
+                cnt++;
+            }
+        }
+    }
 
     return cnt;
 }
@@ -228,7 +272,7 @@ int waitforjob(char *jobnc)
     //traverse through linked list and find the corresponding job
     //hint : traversal done in other functions too
     
-        //if correspoding job is found 
+        //if corresponding job is found 
         //use its pid to make the parent process wait.
         //waitpid with proper argument needed here
     
@@ -341,7 +385,7 @@ int main(void)
         }
         else if (!strcmp("fg", args[0]))
         {
-            //bring a background process to foregrounf
+            //bring a background process to foreground
             waitforjob(args[1]);
         }
         else if (!strcmp("cd", args[0]))
