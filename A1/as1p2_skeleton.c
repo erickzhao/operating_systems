@@ -271,11 +271,16 @@ int waitforjob(char *jobnc)
     trv = head_job;
     //traverse through linked list and find the corresponding job
     //hint : traversal done in other functions too
-    
-        //if corresponding job is found 
-        //use its pid to make the parent process wait.
-        //waitpid with proper argument needed here
-    
+
+    //if corresponding job is found 
+    //use its pid to make the parent process wait.
+    //waitpid with proper argument needed here
+    while (trv->next != NULL) {
+        if (trv->pid == jobn) {
+            break;
+        }
+    }
+    waitpid(jobn, NULL, 0);
     return 0;
 }
 
