@@ -18,6 +18,7 @@ and falls under the McGill code of conduct, to the best of my knowledge.
 #include <sys/wait.h>//for waitpid
 #include <fcntl.h>  //open function to open a file. type "man 2 open" in terminal
 #include <time.h>   //to handle time
+#include <errno.h>
 
 //pointer to Linked list head
 struct node *head_job = NULL;
@@ -204,7 +205,7 @@ int isWhitespace (char c) {
     //count the number of lines in the file 
     //set it in cnt
 
-    if (flag == "l") {
+    if (!strcmp(flag, "l")) {
         cnt++; // increment initially to account for first line before newline
         while(1) {
             // break on EOF
@@ -222,7 +223,7 @@ int isWhitespace (char c) {
     //count the number of words in the file
     //set it in cnt
 
-    if (flag == "w") {
+    if (!strcmp(flag, "w")) {
         // keep flag to track if we're in a word or not
         int in_word = 0; 
         while(1) {
@@ -340,7 +341,7 @@ void initialize(char *args[])
 
 int main(void)
 {
-    //args is a array of charater pointers
+    //args is a array of character pointers
     //where each pointer points to a string
     //which may be command , flag or filename
     char *args[20];
@@ -397,10 +398,16 @@ int main(void)
         {
             int result = 0;
             // if no destination directory given 
-            // change to home directory 
-
+            // change to home directory
+            if (sizeof(args) / sizeof(args[0]) == 1) {
+                printf("home");
+                // chdir(getenv("HOME"));
+            } else {
+                printf("dir");
+                // chdi
+            }
             //if given directory does not exist
-            //print directory does not exit
+            //print directory does not exist
 
             //if everthing is fine 
             //change to destination directory 
@@ -408,7 +415,9 @@ int main(void)
         else if (!strcmp("pwd", args[0]))
         {
             //use getcwd and print the current working directory
-            
+            char buf[1024];
+            getcwd(buf, 1024);
+            printf("%s\n", buf);
         }
         else if(!strcmp("wc",args[0]))
         {
@@ -463,27 +472,27 @@ int main(void)
                 //else set isred to 0
 
                 //if redirection is enabled
-                if (isred == 1)
-                {
-                    //open file and change output from stdout to that  
-                    //make sure you use all the read write exec authorisation flags
-                    //while you use open (man 2 open) to open file
+                // if (isred == 1)
+                // {
+                //     //open file and change output from stdout to that  
+                //     //make sure you use all the read write exec authorisation flags
+                //     //while you use open (man 2 open) to open file
 
-                    //set ">" and redirected filename to NULL
-                    args[i] = NULL;
-                    args[i + 1] = NULL;
+                //     //set ">" and redirected filename to NULL
+                //     args[i] = NULL;
+                //     args[i + 1] = NULL;
 
-                    //run your command
-                    execvp(args[0], args);
+                //     //run your command
+                //     execvp(args[0], args);
 
-                    //restore to stdout
-                    fflush(stdout);
-                }
-                else
-                {
+                //     //restore to stdout
+                //     fflush(stdout);
+                // }
+                // else
+                // {
                     //simply execute the command.
                     execvp(args[0], args);
-                }
+                // }
             }
         }
     }
