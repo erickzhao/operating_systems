@@ -490,13 +490,17 @@ int main(void)
                         break;
                     }
                 }
-                
+
                 // if redirection is enabled
                 if (isred == 1)
                 {
                     //open file and change output from stdout to that  
                     //make sure you use all the read write exec authorisation flags
                     //while you use open (man 2 open) to open file
+
+                    int stdout_cpy = dup(STDOUT_FILENO);
+                    int fd = open(args[i+1], O_WRONLY | O_APPEND | O_CREAT, 0666);
+                    dup2(fd, STDOUT_FILENO);
 
                     //set ">" and redirected filename to NULL
                     args[i] = NULL;

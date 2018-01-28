@@ -1,2 +1,9 @@
 asdasdasd
 asdasasd
+OSW18Assignment1.pdf
+a.out
+a.out.dSYM
+a1_command_piping.c
+a1_redirect.c
+as1p2_skeleton.c
+test.txt
