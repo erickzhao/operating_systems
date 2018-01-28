@@ -200,6 +200,7 @@ int isWhitespace (char c) {
     char    buf;
 
     int fd = open(filename, O_RDONLY, 0666);
+    cnt = 0;
 
     //if flag is l 
     //count the number of lines in the file 
@@ -426,7 +427,8 @@ int main(void)
         else if(!strcmp("wc",args[0]))
         {
             //call the word count function
-            wordCount(args[2],args[1]);
+            int count = wordCount(args[1],args[2]);
+            printf("%d\n", count);
         }
         else
         {
