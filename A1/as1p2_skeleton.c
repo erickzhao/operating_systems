@@ -166,9 +166,13 @@ void listAllJobs()
     //heading row print only once.
     printf("\nID\tPID\tCmd\tstatus\tspawn-time\n");
         
-        //traverse the linked list and print using the following statement for each job
-            printf("%d\t%d\t%s\tRUNNING\t%s\n", current_job->number, current_job->pid, current_job->cmd, ctime(&(current_job->spawn)));
-        
+    //traverse the linked list and print using the following statement for each job
+
+    while (current_job != NULL) {
+        printf("%d\t%d\t%s\tRUNNING\t%s\n", current_job->number, current_job->pid, current_job->cmd, ctime(&(current_job->spawn)));
+        current_job = current_job->next;
+    }
+    
     return;
 }
 
@@ -451,7 +455,7 @@ int main(void)
             if (pid > 0)
             {
                 //we are inside parent
-                //printf("inside the parent\n");
+                printf("inside the parent\n");
                 if (bg == 0)
                 {
                     //FOREGROUND
