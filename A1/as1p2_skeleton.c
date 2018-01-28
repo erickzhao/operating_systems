@@ -188,7 +188,8 @@ void waitForEmptyLL(int nice, int bg)
     }
     return;
 }
-
+// checks if a character is whitespace or not
+// whitespace: space, tab, or newline
 int isWhitespace (char c) {
     return c == '\n' || c == ' ' || c == '\t';
 }
