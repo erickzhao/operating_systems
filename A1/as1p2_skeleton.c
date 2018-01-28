@@ -77,8 +77,8 @@ void addToJobList(char *args[])
         current_job = head_job;
         int count = 1;
         //traverse the linked list to reach the last job
-        while ((*current_job).next != NULL) {
-            current_job = (*current_job).next;
+        while (current_job->next != NULL) {
+            current_job = current_job->next;
             count++;
         }
 
@@ -131,21 +131,18 @@ void refreshJobList()
         if (ret_pid == 0) // process has not exited
         {
             // move to next job
+            prev_job = current_job;
             current_job = current_job->next;
         }
-        else // process has exited:
+        else // process has exited
         {
-            // remove process from list
-            // do this by deep copying next job onto current job
-            struct node *next_job = current_job->next;
-            current_job->pid = next_job->pid;
-            current_job->number = next_job->number;
-            current_job->cmd = next_job->cmd;
-            current_job->spawn = next_job->spawn;
-            current_job->next = next_job->next;
-
-            // free memory from original next job
-            free(next_job);
+            // remove process from list by chaining its previous one to the next one
+            if (current_job == prev_job) {
+                head_job = current_job->next;
+            } else {
+                prev_job->next = current_job->next;
+                current_job = current_job->next;
+            }
         }
     }
     return;
@@ -459,14 +456,13 @@ int main(void)
                 {
                     //FOREGROUND
                     // waitpid with proper argument required
-                    // waitpid(pid, NULL, 0);
+                    waitpid(pid, NULL, 0);
                 }
                 else
                 {
                     //BACKGROUND
                     process_id = pid;
                     addToJobList(args);
-                    // waitpid with proper argument required
                 }
             }
             else
@@ -474,7 +470,7 @@ int main(void)
                 // we are inside the child
 
                 //introducing augmented delay
-                //performAugmentedWait();
+                performAugmentedWait();
 
                 //check for redirection
                 //now you know what does args store
