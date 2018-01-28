@@ -399,18 +399,22 @@ int main(void)
             int result = 0;
             // if no destination directory given 
             // change to home directory
-            if (sizeof(args) / sizeof(args[0]) == 1) {
+            if (args[1] == NULL) {
                 printf("home");
-                // chdir(getenv("HOME"));
+                chdir(getenv("HOME"));
             } else {
-                printf("dir");
-                // chdi
-            }
-            //if given directory does not exist
-            //print directory does not exist
+                //if given directory does not exist
+                //print directory does not exist
+                //if everything is fine 
+                //change to destination directory 
 
-            //if everthing is fine 
-            //change to destination directory 
+                // attempt cd system call
+                chdir(args[1]);
+
+                if (errno == 2) { // if directory does not exist
+                    printf("Directory %s does not exist!", args[1]);
+                }
+            }
         }
         else if (!strcmp("pwd", args[0]))
         {
