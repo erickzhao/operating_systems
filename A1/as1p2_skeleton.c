@@ -460,6 +460,7 @@ int main(void)
                 {
                     //FOREGROUND
                     // waitpid with proper argument required
+                    waitpid(pid, NULL, 0);
                 }
                 else
                 {
@@ -482,28 +483,36 @@ int main(void)
                 //if yes set isred to 1
                 //else set isred to 0
 
-                //if redirection is enabled
-                // if (isred == 1)
-                // {
-                //     //open file and change output from stdout to that  
-                //     //make sure you use all the read write exec authorisation flags
-                //     //while you use open (man 2 open) to open file
+                int i;
+                for (i = 0; i < 20;i++) {
+                    if (!strcmp(args[i], ">")) {
+                        isred = 1;
+                        break;
+                    }
+                }
+                
+                // if redirection is enabled
+                if (isred == 1)
+                {
+                    //open file and change output from stdout to that  
+                    //make sure you use all the read write exec authorisation flags
+                    //while you use open (man 2 open) to open file
 
-                //     //set ">" and redirected filename to NULL
-                //     args[i] = NULL;
-                //     args[i + 1] = NULL;
+                    //set ">" and redirected filename to NULL
+                    args[i] = NULL;
+                    args[i + 1] = NULL;
 
-                //     //run your command
-                //     execvp(args[0], args);
+                    //run your command
+                    execvp(args[0], args);
 
-                //     //restore to stdout
-                //     fflush(stdout);
-                // }
-                // else
-                // {
+                    //restore to stdout
+                    fflush(stdout);
+                }
+                else
+                {
                     //simply execute the command.
                     execvp(args[0], args);
-                // }
+                }
             }
         }
     }
