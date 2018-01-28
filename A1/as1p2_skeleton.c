@@ -455,12 +455,11 @@ int main(void)
             if (pid > 0)
             {
                 //we are inside parent
-                printf("inside the parent\n");
                 if (bg == 0)
                 {
                     //FOREGROUND
                     // waitpid with proper argument required
-                    waitpid(pid, NULL, 0);
+                    // waitpid(pid, NULL, 0);
                 }
                 else
                 {
@@ -475,7 +474,7 @@ int main(void)
                 // we are inside the child
 
                 //introducing augmented delay
-                performAugmentedWait();
+                //performAugmentedWait();
 
                 //check for redirection
                 //now you know what does args store
@@ -484,11 +483,13 @@ int main(void)
                 //else set isred to 0
 
                 int i;
-                for (i = 0; i < 20;i++) {
+                i = 1;
+                while (args[i] != NULL) {
                     if (!strcmp(args[i], ">")) {
                         isred = 1;
                         break;
                     }
+                    i++;
                 }
 
                 // if redirection is enabled
