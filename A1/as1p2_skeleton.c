@@ -34,6 +34,9 @@ pid_t process_id;
 //flag variable to check if redirection of output is required
 int isred = 0;
 
+
+int job_count = 0;
+
 //structure of a single node
 //donot modify this structure
 struct node
@@ -53,8 +56,9 @@ void addToJobList(char *args[])
     //If the job list is empty, create a new head
     if (head_job == NULL)
     {
+        job_count = 1;
         //init the job number with 1
-        job->number = 1;
+        job->number = job_count;
         //set its pid from the global variable process_id
         job->pid = process_id;
         //cmd can be set to arg[0]
@@ -67,25 +71,14 @@ void addToJobList(char *args[])
         head_job = job;
         //set current_job to be head_job
         current_job = head_job;
-        
     }
-
     //Otherwise create a new job node and link the current node to it
     else
     {
-        //point current_job to head_job
-        current_job = head_job;
-        int count = 1;
-        //traverse the linked list to reach the last job
-        while (current_job->next != NULL) {
-            current_job = current_job->next;
-            count++;
-        }
-
         //init all values of the job like above num,pid,cmd.spawn
         struct node *job = malloc(sizeof(struct node));
-        //init the job number with 1
-        job->number = count + 1;
+        //init the job number
+        job->number = job_count;
         //set new pid 
         job->pid = (current_job->pid) + 1;
         //cmd can be set to arg[0]
@@ -101,8 +94,8 @@ void addToJobList(char *args[])
         current_job = job;
         //set the next of job to be NULL
         job->next = NULL;
-        
     }
+    job_count++;
 }
 
 //Function to refresh job list
@@ -137,7 +130,7 @@ void refreshJobList()
         else // process has exited
         {
             // remove process from list by chaining its previous one to the next one
-            if (current_job == prev_job) {
+            if (current_job == head_job) {
                 head_job = current_job->next;
             } else {
                 prev_job->next = current_job->next;
