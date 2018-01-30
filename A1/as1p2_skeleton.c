@@ -447,6 +447,12 @@ int main(void)
             //hint : samosas are nice but often there 
             //is a long waiting line for it.
 
+            printf("nice: %d\nbg: %d\n", nice, bg);
+
+            if (nice) {
+                waitForEmptyLL(nice,bg);
+            }
+
             //create a child
             pid = fork();
 
