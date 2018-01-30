@@ -85,7 +85,7 @@ void addToJobList(char *args[])
         //init all values of the job like above num,pid,cmd.spawn
         struct node *job = malloc(sizeof(struct node));
         //init the job number with 1
-        job->number = count;
+        job->number = count + 1;
         //set new pid 
         job->pid = (current_job->pid) + 1;
         //cmd can be set to arg[0]
