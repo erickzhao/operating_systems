@@ -5,40 +5,41 @@ and falls under the McGill code of conduct, to the best of my knowledge.
 -----------------------------------------------------------------
 */ 
 
-//Please enter your name and McGill ID below
-//Name: Erick Zhao
-//McGill ID: 260687719
+// Please enter your name and McGill ID below
+// Name: Erick Zhao
+// McGill ID: 260687719
 
-//all the header files you would require
-#include <stdio.h>  //for standard IO
-#include <unistd.h> //for execvp/dup/dup2
-#include <string.h> //for string manipulation
-#include <stdlib.h> //for fork  
-#include <ctype.h>  //for character type check (isnum,isalpha,isupper etc)
-#include <sys/wait.h>//for waitpid
-#include <fcntl.h>  //open function to open a file. type "man 2 open" in terminal
-#include <time.h>   //to handle time
-#include <errno.h>
+// all the header files you would require
+#include <stdio.h>    // for standard IO
+#include <unistd.h>   // for execvp/dup/dup2
+#include <string.h>   // for string manipulation
+#include <stdlib.h>   // for fork  
+#include <ctype.h>    // for character type check (isnum,isalpha,isupper etc)
+#include <sys/wait.h> // for waitpid
+#include <fcntl.h>    // open function to open a file. type "man 2 open" in terminal
+#include <time.h>     // to handle time
+#include <errno.h>    // allows error checking
 
-//pointer to Linked list head
+// pointer to Linked list head
 struct node *head_job = NULL;
 
-//pointer to current job in Linked list
+// pointer to current job in Linked list
 struct node *current_job = NULL;
 
-//global variable used to store process id of process
-//that has been just created
-//can be used while adding a job to linked list
+// Global variable used to store process id of process
+// that has been just created.
+// Can be used while adding a job to linked list.
 pid_t process_id;
 
-//flag variable to check if redirection of output is required
+// flag variable to check if redirection of output is required
 int isred = 0;
 
+// counter to keep track of job numbers
+// used to set new job numbers
+int next_job_number = 0;
 
-int job_count = 0;
-
-//structure of a single node
-//donot modify this structure
+// structure of a single node
+// donot modify this structure
 struct node
 {
     int number;        //the job number
@@ -51,87 +52,91 @@ struct node
 // Add a job to the linked list
 void addToJobList(char *args[])
 {
-    //allocate memory for the new job
+    // allocate memory for the new job
     struct node *job = malloc(sizeof(struct node));
-    //If the job list is empty, create a new head
+    // If the job list is empty, create a new head
     if (head_job == NULL)
     {
-        job_count = 1;
-        //init the job number with 1
-        job->number = job_count;
-        //set its pid from the global variable process_id
+        // if no jobs, reset global job counter to 1
+        next_job_number = 1;
+
+        // init the job number with 1
+        job->number = next_job_number;
+        // set its pid from the global variable process_id
         job->pid = process_id;
-        //cmd can be set to arg[0]
+        // cmd can be set to args[0]
         job->cmd = args[0];
-        //set the job->next to point to NULL.
+        // set the job->next to point to NULL.
         job->next = NULL;
-        //set the job->spawn using time function
+        // set the job->spawn using time function
         job->spawn = (unsigned int)time(NULL);
-        //set head_job to be the job
+        // set head_job to be the job
         head_job = job;
-        //set current_job to be head_job
+        // set current_job to be head_job
         current_job = head_job;
     }
-    //Otherwise create a new job node and link the current node to it
+    // Otherwise, create a new job node and link the current node to it
     else
     {
-        //init all values of the job like above num,pid,cmd.spawn
+        // init all values of the job like above num, pid, cmd, spawn
         struct node *job = malloc(sizeof(struct node));
-        //init the job number
-        job->number = job_count;
-        //set new pid 
+        // init the job number
+        job->number = next_job_number;
+        // set new pid
         job->pid = (current_job->pid) + 1;
-        //cmd can be set to arg[0]
+        // cmd can be set to arg[0]
         job->cmd = args[0];
-        //set the job->next to point to NULL.
+        // set the job->next to point to NULL.
         job->next = NULL;
-        //set the job->spawn using time function
+        // set the job->spawn using time function
         job->spawn = (unsigned int)time(NULL);
         
-        //make next of current_job point to job
+        // make next of current_job point to job
         current_job->next = job;
-        //make job to be current_job
+        // make job to be current_job
         current_job = job;
-        //set the next of job to be NULL
+        // set the next of job to be NULL
         job->next = NULL;
     }
-    job_count++;
+    next_job_number++;
 }
 
-//Function to refresh job list
-//Run through jobs in linked list and check
-//if they are done executing then remove it
+// Function to refresh job list
+// Run through jobs in linked list and check
+// if they are done executing then remove it
 void refreshJobList()
 {
-    //pointer require to perform operation 
-    //on linked list
+    // pointer require to perform operation on linked list
     struct node *current_job;
     struct node *prev_job;
     
     //variable to store returned pid 
     pid_t ret_pid;
 
-    //perform init for pointers
+    // init pointers
     current_job = head_job;
     prev_job = head_job;
 
-    //traverse through the linked list
+    // traverse through the linked list
     while (current_job != NULL)
     {
-        //use waitpid to init ret_pid variable
+        // use waitpid to init return pid variable
+        // NOHANG - doesn't wait for process to finish
         ret_pid = waitpid(current_job->pid, NULL, WNOHANG);
-        //one of the below needs node removal from linked list
-        if (ret_pid == 0) // process has not exited
+
+        if (ret_pid == 0) // process has not exited, continue traversal
         {
-            // move to next job
             prev_job = current_job;
             current_job = current_job->next;
         }
-        else // process has exited
+        else // process has exited, remove it from list
         {
-            // remove process from list by chaining its previous one to the next one
+
+            // if head job, change head to second element
             if (current_job == head_job) {
                 head_job = current_job->next;
+            // otherwise, connect previous node to next
+            // to remove current from chain
             } else {
                 prev_job->next = current_job->next;
                 current_job = current_job->next;
@@ -141,23 +146,22 @@ void refreshJobList()
     return;
 }
 
-//Function that list all the jobs
+// Function that lists all the jobs
 void listAllJobs()
 {
     struct node *current_job;
     int ret_pid;
 
-    //refresh the linked list
+    // refresh the linked list
     refreshJobList();
 
-    //init current_job with head_job
+    // init current_job with head_job
     current_job = head_job;
 
-    //heading row print only once.
+    // heading row print only once.
     printf("\nID\tPID\tCmd\tstatus\tspawn-time\n");
         
-    //traverse the linked list and print using the following statement for each job
-
+    // traverse the linked list and print using the following statement for each job
     while (current_job != NULL) {
         printf("%d\t%d\t%s\tRUNNING\t%s\n", current_job->number, current_job->pid, current_job->cmd, ctime(&(current_job->spawn)));
         current_job = current_job->next;
@@ -188,18 +192,19 @@ int isWhitespace (char c) {
     return c == '\n' || c == ' ' || c == '\t';
 }
 
-//function to perform word count
+// function to perform word count
  int wordCount(char *filename,char* flag)
 {
     int     cnt;
     char    buf;
 
+    // open file with read only flag
     int fd = open(filename, O_RDONLY, 0666);
     cnt = 0;
 
-    //if flag is l 
-    //count the number of lines in the file 
-    //set it in cnt
+    // if flag is l 
+    // count the number of lines in the file 
+    // set it in cnt
 
     if (!strcmp(flag, "l")) {
         cnt++; // increment initially to account for first line before newline
@@ -215,9 +220,9 @@ int isWhitespace (char c) {
         }
     }
 
-    //if flag is w
-    //count the number of words in the file
-    //set it in cnt
+    // if flag is w
+    // count the number of words in the file
+    // set it in cnt
 
     if (!strcmp(flag, "w")) {
         // keep flag to track if we're in a word or not
@@ -228,14 +233,12 @@ int isWhitespace (char c) {
                 break;
             };
 
-            // if in word and we see whitespace character, then set that we're not in word
-            // if not in word and we see non-whitespace character, then set that we're in word
-            // and increment to increase word count.
-
-            // this deals with many whitespace characters chained together
             if (in_word && isWhitespace(buf)) {
+                // if in word and whitespace encountered, then set NOT IN WORD
                 in_word = 0;
             } else if (!in_word && !isWhitespace(buf)) {
+                // if not in word and not whitespace encountered, then set IN WORD
+                // new word encountered -> increase word count
                 in_word = 1;
                 cnt++;
             }
@@ -258,24 +261,25 @@ void performAugmentedWait()
     return;
 }
 
-//simulates running process to foreground
-//by making the parent process wait for
-//a particular process id.
+// simulates running process to foreground
+// by making the parent process wait for
+// a particular process id.
 int waitforjob(char *jobnc)
 {
     struct node *trv;
     int jobn = (*jobnc) - '0';
     trv = head_job;
-    //traverse through linked list and find the corresponding job
-    //hint : traversal done in other functions too
+    // traverse through linked list and find the corresponding job
+    // hint : traversal done in other functions too
 
-    //if corresponding job is found 
-    //use its pid to make the parent process wait.
-    //waitpid with proper argument needed here
+    // if corresponding job is found 
+    // use its pid to make the parent process wait.
+    // waitpid with proper argument needed here
     while (trv != NULL) {
+        // matching job numbers
         if (trv->number == jobn) {
             int status;
-            waitpid(trv->pid, &status, WUNTRACED);
+            waitpid(trv->pid, &status, WUNTRACED); // wait until termination
             break;
         }
         trv = trv->next;
@@ -442,26 +446,28 @@ int main(void)
 
             printf("nice: %d\nbg: %d\n", nice, bg);
 
+            // if nice command, wait for empty linked list before executing
             if (nice) {
                 waitForEmptyLL(nice,bg);
             }
 
-            //create a child
+            // create a child
             pid = fork();
 
-            //to check if it is parent
+            // to check if it is parent
             if (pid > 0)
             {
-                //we are inside parent
+                // in parent
                 if (bg == 0)
                 {
-                    //FOREGROUND
-                    // waitpid with proper argument required
+                    // FOREGROUND
+                    // wait until process ends
                     waitpid(pid, NULL, 0);
                 }
                 else
                 {
-                    //BACKGROUND
+                    // BACKGROUND
+                    // don't wait; just add job to list
                     process_id = pid;
                     addToJobList(args);
                 }
@@ -473,11 +479,11 @@ int main(void)
                 //introducing augmented delay
                 performAugmentedWait();
 
-                //check for redirection
-                //now you know what does args store
-                //check if args has ">"
-                //if yes set isred to 1
-                //else set isred to 0
+                // check for redirection
+                // now you know what does args store
+                // check if args has ">"
+                // if yes set isred to 1
+                // else set isred to 0
 
                 int i;
                 i = 1;
@@ -492,9 +498,9 @@ int main(void)
                 // if redirection is enabled
                 if (isred == 1)
                 {
-                    //open file and change output from stdout to that  
-                    //make sure you use all the read write exec authorisation flags
-                    //while you use open (man 2 open) to open file
+                    // open file and change output from stdout to that  
+                    // make sure you use all the read write exec authorisation flags
+                    // while you use open (man 2 open) to open file
 
                     int stdout_cpy = dup(STDOUT_FILENO);
                     int fd = open(args[i+1], O_WRONLY | O_APPEND | O_CREAT, 0666);
