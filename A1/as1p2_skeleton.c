@@ -18,7 +18,6 @@ and falls under the McGill code of conduct, to the best of my knowledge.
 #include <sys/wait.h> // for waitpid
 #include <fcntl.h>    // open function to open a file. type "man 2 open" in terminal
 #include <time.h>     // to handle time
-#include <errno.h>    // allows error checking
 
 // pointer to Linked list head
 struct node *head_job = NULL;
@@ -202,12 +201,13 @@ int isWhitespace (char c) {
     int fd = open(filename, O_RDONLY, 0666);
     cnt = 0;
 
-    // if flag is l 
-    // count the number of lines in the file 
-    // set it in cnt
+    if (!flag) {
+        printf("Please enter a flag for the wc command!\n");
+        return -1;
+    } else if (!strcmp(flag, "l")) {
+        // if flag is l, count the number of lines in the file
 
-    if (!strcmp(flag, "l")) {
-        cnt++; // increment initially to account for first line before newline
+        cnt++; // to account for first line before newline
         while(1) {
             // break on EOF
             if (!read(fd, &buf, 1)) {
@@ -218,13 +218,9 @@ int isWhitespace (char c) {
                 cnt++;
             }
         }
-    }
-
-    // if flag is w
-    // count the number of words in the file
-    // set it in cnt
-
-    if (!strcmp(flag, "w")) {
+    } else if (!strcmp(flag, "w")) {
+        // if flag is w, count the number of words in the file
+    
         // keep flag to track if we're in a word or not
         int in_word = 0; 
         while(1) {
@@ -243,6 +239,9 @@ int isWhitespace (char c) {
                 cnt++;
             }
         }
+    } else {
+        printf("Flag %s not recognized!\n", flag);
+        return -1;
     }
 
     return cnt;
@@ -402,7 +401,6 @@ int main(void)
             // if no destination directory given 
             // change to home directory
             if (args[1] == NULL) {
-                printf("home");
                 chdir(getenv("HOME"));
             } else {
                 //if given directory does not exist
@@ -411,9 +409,8 @@ int main(void)
                 //change to destination directory 
 
                 // attempt cd system call
-                chdir(args[1]);
 
-                if (errno == 2) { // if directory does not exist
+                if (chdir(args[1]) == -1) { // if directory does not exist
                     printf("Directory %s does not exist!", args[1]);
                 }
             }
@@ -429,7 +426,10 @@ int main(void)
         {
             //call the word count function
             int count = wordCount(args[1],args[2]);
-            printf("%d\n", count);
+
+            if (count >= 0) {
+                printf("%d\n", count);
+            }
         }
         else
         {
@@ -443,8 +443,6 @@ int main(void)
 
             //hint : samosas are nice but often there 
             //is a long waiting line for it.
-
-            printf("nice: %d\nbg: %d\n", nice, bg);
 
             // if nice command, wait for empty linked list before executing
             if (nice) {
@@ -519,7 +517,9 @@ int main(void)
                 else
                 {
                     //simply execute the command.
-                    execvp(args[0], args);
+                    if (execvp(args[0], args) == -1) {
+                        printf("No such command!");
+                    };
                 }
             }
         }
