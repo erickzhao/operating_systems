@@ -503,7 +503,7 @@ int main(void)
                     // while you use open (man 2 open) to open file
 
                     int stdout_cpy = dup(STDOUT_FILENO);
-                    int fd = open(args[i+1], O_WRONLY | O_APPEND | O_CREAT, 0666);
+                    int fd = open(args[i+1], O_WRONLY | O_CREAT, 0666);
                     dup2(fd, STDOUT_FILENO);
 
                     //set ">" and redirected filename to NULL
