@@ -206,8 +206,6 @@ int isWhitespace (char c) {
         return -1;
     } else if (!strcmp(flag, "l")) {
         // if flag is l, count the number of lines in the file
-
-        cnt++; // to account for first line before newline
         while(1) {
             // break on EOF
             if (!read(fd, &buf, 1)) {
