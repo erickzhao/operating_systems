@@ -82,7 +82,7 @@ void addToJobList(char *args[])
         // init the job number
         job->number = next_job_number;
         // set new pid
-        job->pid = (current_job->pid) + 1;
+        job->pid = process_id;
         // cmd can be set to arg[0]
         job->cmd = args[0];
         // set the job->next to point to NULL.
