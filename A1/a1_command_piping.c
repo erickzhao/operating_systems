@@ -1,5 +1,16 @@
-#include<stdio.h>
-#include<unistd.h>
+/*
+----------------- COMP 310/ECSE 427 Winter 2018 -----------------
+I declare that the awesomeness below is a genuine piece of work
+and falls under the McGill code of conduct, to the best of my knowledge.
+-----------------------------------------------------------------
+*/ 
+
+// Please enter your name and McGill ID below
+// Name: Erick Zhao
+// McGill ID: 260687719
+
+#include <stdio.h>
+#include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
