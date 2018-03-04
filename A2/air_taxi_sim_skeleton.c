@@ -1,19 +1,17 @@
 /*
- ----------------- COMP 310/ECSE 427 Winter 2018 -----------------
- Dimitri Gallos
- Assignment 2 skeleton
- 
- -----------------------------------------------------------------
- I declare that the awesomeness below is a genuine piece of work
- and falls under the McGill code of conduct, to the best of my knowledge.
- -----------------------------------------------------------------
+----------------- COMP 310/ECSE 427 Winter 2018 -----------------
+Dimitri Gallos
+Assignment 2 skeleton
+
+-----------------------------------------------------------------
+I declare that the awesomeness below is a genuine piece of work
+and falls under the McGill code of conduct, to the best of my knowledge.
+-----------------------------------------------------------------
  */
 
 //Please enter your name and McGill ID below
 //Name: <your name>
 //McGill ID: <magic number>
-
- 
 
 #include <stdio.h>
 #include <pthread.h>
@@ -22,9 +20,7 @@
 #include <limits.h>
 #include <semaphore.h>
 
-
 int BUFFER_SIZE = 100; //size of queue
-
 
 
 // A structure to represent a queue
@@ -34,7 +30,7 @@ struct Queue
     unsigned capacity;
     int* array;
 };
- 
+
 // function to create a queue of given capacity. 
 // It initializes size of queue as 0
 struct Queue* createQueue(unsigned capacity)
@@ -46,19 +42,19 @@ struct Queue* createQueue(unsigned capacity)
     queue->array = (int*) malloc(queue->capacity * sizeof(int));
     return queue;
 }
- 
+
 // Queue is full when size becomes equal to the capacity 
 int isFull(struct Queue* queue)
 {
     return ((queue->size ) >= queue->capacity);
 }
- 
+
 // Queue is empty when size is 0
 int isEmpty(struct Queue* queue)
 {
     return (queue->size == 0);
 }
- 
+
 // Function to add an item to the queue.  
 // It changes rear and size
 void enqueue(struct Queue* queue, int item)
@@ -90,7 +86,7 @@ int front(struct Queue* queue)
         return INT_MIN;
     return queue->array[queue->front];
 }
- 
+
 // Function to get rear of queue
 int rear(struct Queue* queue)
 {
@@ -104,11 +100,9 @@ void print(struct Queue* queue){
         return;
     }
     
-    for (int i = queue->front; i < queue->front +queue->size; i++){
-        
-        printf(" Element at position %d is %d \n ", i % (queue->capacity ), queue->array[i % (queue->capacity)]);
+    for (int i = queue->front; i < queue->front + queue->size; i++){
+        printf(" Element at position %d is %d \n ", i % (queue->capacity), queue->array[i % (queue->capacity)]);
     }
-    
 }
 
 struct Queue* queue;
@@ -116,38 +110,49 @@ struct Queue* queue;
 /*Producer Function: Simulates an Airplane arriving and dumping 5-10 passengers to the taxi platform */
 void *FnAirplane(void* cl_id)
 {
+
 }
 
 /* Consumer Function: simulates a taxi that takes n time to take a passenger home and come back to the airport */
 void *FnTaxi(void* pr_id)
 {
+
 }
 
 int main(int argc, char *argv[])
 {
+    // initialize random number generator
+    srand(time(NULL));
 
-  int num_airplanes;
-  int num_taxis;
+    int num_airplanes;
+    int num_taxis;
 
-  num_airplanes=atoi(argv[1]);
-  num_taxis=atoi(argv[2]);
-  
-  printf("You entered: %d airplanes per hour\n",num_airplanes);
-  printf("You entered: %d taxis\n", num_taxis);
-  
-  
-  //initialize queue
-  queue = createQueue(BUFFER_SIZE);
-  
-  //declare arrays of threads and initialize semaphore(s)
+    num_airplanes=atoi(argv[1]);
+    num_taxis=atoi(argv[2]);
 
-  //create arrays of integer pointers to ids for taxi / airplane threads
-  int *taxi_ids[num_taxis];
-  int *airplane_ids[num_airplanes];
-    
-  //create threads for airplanes
+    printf("You entered: %d airplanes per hour\n",num_airplanes);
+    printf("You entered: %d taxis\n", num_taxis);
 
-  //create threads for taxis
-  
-  pthread_exit(NULL);
+    //initialize queue
+    queue = createQueue(BUFFER_SIZE);
+
+    //declare arrays of threads and initialize semaphore(s)
+    pthread_t taxi_threads[num_taxis];
+    pthread_t airplane_threads[num_airplanes];
+
+    //create arrays of integer pointers to ids for taxi / airplane threads
+    int *taxi_ids[num_taxis];
+    int *airplane_ids[num_airplanes];
+
+    //create threads for airplanes
+    for (int i=0; i<num_airplanes;i++) {
+        pthread_create((void*) &airplane_threads[i], NULL, &FnAirplane, &taxi_ids[i]);
+    }
+
+    //create threads for taxis
+    for (int j=0; j<num_taxis; j++) {
+        pthread_create((void*) &taxi_threads[j], NULL, &FnTaxi, &airplane_ids[num_airplanes]);
+    }
+
+    pthread_exit(NULL);
 }
