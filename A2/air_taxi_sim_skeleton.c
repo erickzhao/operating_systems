@@ -115,17 +115,21 @@ void *FnAirplane(void* cl_id)
 {
     int plane_id = (int) cl_id;
     while(1) {
-        sem_wait(&empty_count);
-        pthread_mutex_lock(&mutex);
         int num_people = (rand() % 6) + 5;
         printf("Airplane %d arrives with %d passengers\n", plane_id, num_people);
         for (int i = 0; i < num_people; i++) {
-            int passenger_id = 1000000+plane_id*1000+i;
-            printf("Passenger %d arrives to platform\n",passenger_id);
-            enqueue(queue, passenger_id);
+            if (isFull(queue)) {
+                printf("Platform is full: Rest of passengers of plane %d take the bus\n", plane_id);
+                break;
+            } else {
+                pthread_mutex_lock(&mutex);
+                int passenger_id = 1000000+plane_id*1000+i;
+                printf("Passenger %d arrives to platform\n",passenger_id);
+                enqueue(queue, passenger_id);
+                pthread_mutex_unlock(&mutex);
+                sem_post(&full_count);
+            }
         }
-        pthread_mutex_unlock(&mutex);
-        sem_post(&full_count);
         sleep(1);
     }
 }
@@ -144,8 +148,6 @@ void *FnTaxi(void* pr_id)
         sem_post(&empty_count);
         sleep(1);
     }
-    
-
 }
 
 int main(int argc, char *argv[])
@@ -186,6 +188,16 @@ int main(int argc, char *argv[])
     //create threads for taxis
     for (int j=0; j<num_taxis; j++) {
         pthread_create((void*) &taxi_threads[j], NULL, &FnTaxi, (void *)(intptr_t)j);
+    }
+
+    //thread by default are joinable 
+    //joining back threads
+    //execution of main thread halts unless all threads are joined
+    for (int m=0;m<num_airplanes;m++) {
+        pthread_join(airplane_threads[m],NULL);
+    }
+    for (int n=0;n<num_taxis;n++) {
+        pthread_join(taxi_threads[n],NULL);
     }
 
     pthread_exit(NULL);
