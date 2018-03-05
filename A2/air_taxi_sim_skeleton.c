@@ -22,6 +22,9 @@ and falls under the McGill code of conduct, to the best of my knowledge.
 
 int BUFFER_SIZE = 100; //size of queue
 
+sem_t empty_count;
+sem_t full_count;
+pthread_mutex_t mutex;
 
 // A structure to represent a queue
 struct Queue
@@ -110,12 +113,38 @@ struct Queue* queue;
 /*Producer Function: Simulates an Airplane arriving and dumping 5-10 passengers to the taxi platform */
 void *FnAirplane(void* cl_id)
 {
-
+    int plane_id = (int) cl_id;
+    while(1) {
+        sem_wait(&empty_count);
+        pthread_mutex_lock(&mutex);
+        int num_people = (rand() % 6) + 5;
+        printf("Airplane %d arrives with %d passengers\n", plane_id, num_people);
+        for (int i = 0; i < num_people; i++) {
+            int passenger_id = 1000000+plane_id*1000+i;
+            printf("Passenger %d arrives to platform\n",passenger_id);
+            enqueue(queue, passenger_id);
+        }
+        pthread_mutex_unlock(&mutex);
+        sem_post(&full_count);
+        sleep(1);
+    }
 }
 
 /* Consumer Function: simulates a taxi that takes n time to take a passenger home and come back to the airport */
 void *FnTaxi(void* pr_id)
 {
+    int taxi_id = (int) pr_id;
+    while(1) {
+        printf("Taxi driver %d arrives\n", taxi_id);
+        sem_wait(&full_count);
+        pthread_mutex_lock(&mutex);
+        int passenger_id = dequeue(queue);
+        printf("Taxi driver %d picks up client %d from the platform\n", taxi_id, passenger_id);
+        pthread_mutex_unlock(&mutex);
+        sem_post(&empty_count);
+        sleep(1);
+    }
+    
 
 }
 
@@ -140,18 +169,23 @@ int main(int argc, char *argv[])
     pthread_t taxi_threads[num_taxis];
     pthread_t airplane_threads[num_airplanes];
 
+    sem_init(&empty_count, 0, BUFFER_SIZE);
+    sem_init(&full_count, 0, 0);
+    pthread_mutex_init(&mutex, NULL);
+
     //create arrays of integer pointers to ids for taxi / airplane threads
-    int *taxi_ids[num_taxis];
-    int *airplane_ids[num_airplanes];
+    // int *taxi_ids[num_taxis];
+    // int *airplane_ids[num_airplanes];
 
     //create threads for airplanes
     for (int i=0; i<num_airplanes;i++) {
-        pthread_create((void*) &airplane_threads[i], NULL, &FnAirplane, &taxi_ids[i]);
+        printf("Creating airplane thread %d\n", i);
+        pthread_create((void*) &airplane_threads[i], NULL, &FnAirplane, (void *)(intptr_t)i);
     }
 
     //create threads for taxis
     for (int j=0; j<num_taxis; j++) {
-        pthread_create((void*) &taxi_threads[j], NULL, &FnTaxi, &airplane_ids[num_airplanes]);
+        pthread_create((void*) &taxi_threads[j], NULL, &FnTaxi, (void *)(intptr_t)j);
     }
 
     pthread_exit(NULL);
