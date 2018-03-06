@@ -24,7 +24,7 @@ int BUFFER_SIZE = 100; //size of queue
 
 sem_t empty_count;
 sem_t full_count;
-pthread_mutex_t mutex;
+sem_t mutex;
 
 // A structure to represent a queue
 struct Queue
@@ -122,11 +122,12 @@ void *FnAirplane(void* cl_id)
                 printf("Platform is full: Rest of passengers of plane %d take the bus\n", plane_id);
                 break;
             } else {
-                pthread_mutex_lock(&mutex);
+                sem_wait(&empty_count);
+                sem_wait(&mutex);
                 int passenger_id = 1000000+plane_id*1000+i;
                 printf("Passenger %d arrives to platform\n",passenger_id);
                 enqueue(queue, passenger_id);
-                pthread_mutex_unlock(&mutex);
+                sem_post(&mutex);
                 sem_post(&full_count);
             }
         }
@@ -141,10 +142,10 @@ void *FnTaxi(void* pr_id)
     while(1) {
         printf("Taxi driver %d arrives\n", taxi_id);
         sem_wait(&full_count);
-        pthread_mutex_lock(&mutex);
+        sem_wait(&mutex);
         int passenger_id = dequeue(queue);
         printf("Taxi driver %d picks up client %d from the platform\n", taxi_id, passenger_id);
-        pthread_mutex_unlock(&mutex);
+        sem_wait(&mutex);
         sem_post(&empty_count);
         sleep(1);
     }
@@ -173,7 +174,7 @@ int main(int argc, char *argv[])
 
     sem_init(&empty_count, 0, BUFFER_SIZE);
     sem_init(&full_count, 0, 0);
-    pthread_mutex_init(&mutex, NULL);
+    sem_init(&mutex, 0, 0);
 
     //create arrays of integer pointers to ids for taxi / airplane threads
     // int *taxi_ids[num_taxis];
