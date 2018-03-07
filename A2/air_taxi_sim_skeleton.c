@@ -1,8 +1,7 @@
 /*
 ----------------- COMP 310/ECSE 427 Winter 2018 -----------------
-Erick Zhao
-260687719
-Assignment 2
+Dimitri Gallos
+Assignment 2 Skeleton
 
 -----------------------------------------------------------------
 I declare that the awesomeness below is a genuine piece of work
@@ -11,8 +10,8 @@ and falls under the McGill code of conduct, to the best of my knowledge.
  */
 
 //Please enter your name and McGill ID below
-//Name: <your name>
-//McGill ID: <magic number>
+//Name: Erick Zhao
+//McGill ID: 260687719
 
 #include <stdio.h>
 #include <pthread.h>
