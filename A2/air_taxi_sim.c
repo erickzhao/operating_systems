@@ -155,7 +155,7 @@ void *FnTaxi(void* pr_id)
         sem_wait(&mutex);
         int passenger_id = dequeue(queue);
         printf("Taxi driver %d picks up client %d from the platform\n", taxi_id, passenger_id);
-        sem_wait(&mutex);
+        sem_post(&mutex);
         sem_post(&empty_count);
         int taxi_time = ((float)(rand() % 21 + 10)/60.0)*1000000;
         usleep(taxi_time);
