@@ -1,7 +1,8 @@
 /*
 ----------------- COMP 310/ECSE 427 Winter 2018 -----------------
-Dimitri Gallos
-Assignment 2 skeleton
+Erick Zhao
+260687719
+Assignment 2
 
 -----------------------------------------------------------------
 I declare that the awesomeness below is a genuine piece of work
@@ -115,9 +116,13 @@ void *FnAirplane(void* cl_id)
 {
     int plane_id = (int) cl_id;
     while(1) {
+        // generate random number between 5 and 10
         int num_people = (rand() % 6) + 5;
         printf("Airplane %d arrives with %d passengers\n", plane_id, num_people);
+        // loop for each passenger
         for (int i = 0; i < num_people; i++) {
+            // if full, other passengers go away
+            // otherwise, approach critical section to go to platform
             if (isFull(queue)) {
                 printf("Platform is full: Rest of passengers of plane %d take the bus\n", plane_id);
                 break;
@@ -141,13 +146,20 @@ void *FnTaxi(void* pr_id)
     int taxi_id = (int) pr_id;
     while(1) {
         printf("Taxi driver %d arrives\n", taxi_id);
+        // continuously check if empty queue
+        // then when queue is not empty, attempt to approach critical section
+        if (isEmpty(queue)) {
+            printf("Taxi driver %d waits for passengers to enter the platform \n", taxi_id);
+            while(isEmpty(queue));
+        }
         sem_wait(&full_count);
         sem_wait(&mutex);
         int passenger_id = dequeue(queue);
         printf("Taxi driver %d picks up client %d from the platform\n", taxi_id, passenger_id);
         sem_wait(&mutex);
         sem_post(&empty_count);
-        sleep(1);
+        int taxi_time = ((float)(rand() % 21 + 10)/60.0)*1000000;
+        usleep(taxi_time);
     }
 }
 
@@ -158,6 +170,11 @@ int main(int argc, char *argv[])
 
     int num_airplanes;
     int num_taxis;
+
+    if (!argv[1] || !argv[2]) {
+        printf("You didn't enter correct arguments!\n");
+        return 1;
+    }
 
     num_airplanes=atoi(argv[1]);
     num_taxis=atoi(argv[2]);
@@ -174,11 +191,7 @@ int main(int argc, char *argv[])
 
     sem_init(&empty_count, 0, BUFFER_SIZE);
     sem_init(&full_count, 0, 0);
-    sem_init(&mutex, 0, 0);
-
-    //create arrays of integer pointers to ids for taxi / airplane threads
-    // int *taxi_ids[num_taxis];
-    // int *airplane_ids[num_airplanes];
+    sem_init(&mutex, 0, 1);
 
     //create threads for airplanes
     for (int i=0; i<num_airplanes;i++) {
@@ -191,9 +204,7 @@ int main(int argc, char *argv[])
         pthread_create((void*) &taxi_threads[j], NULL, &FnTaxi, (void *)(intptr_t)j);
     }
 
-    //thread by default are joinable 
-    //joining back threads
-    //execution of main thread halts unless all threads are joined
+    // join all threads
     for (int m=0;m<num_airplanes;m++) {
         pthread_join(airplane_threads[m],NULL);
     }
