@@ -111,7 +111,6 @@ void accessSSTF(int *request, int numRequest)
 void accessSCAN(int *request, int numRequest)
 {
   int numSCAN = 0;
-  int *isAccessed = malloc(sizeof(request));
   int *requestSCAN = malloc(sizeof(request));
 
   // keep index of first element to the right of element
@@ -143,7 +142,6 @@ void accessSCAN(int *request, int numRequest)
     numSCAN++;
   }
 
-
   //write your logic here
   printf("\n----------------\n");
   printf("SCAN :");
@@ -155,10 +153,55 @@ void accessSCAN(int *request, int numRequest)
 //access the disk location in CSCAN
 void accessCSCAN(int *request, int numRequest)
 {
-  //write your logic here
+  int numCSCAN = 0;
+  // allocate 2 more int slots in case we need to jump (record 199 and 0)
+  int *requestCSCAN = malloc(sizeof(request) + 2*sizeof(int));
+
+  // keep index of first element to the right of element
+  // default value: no elements to right
+  int firstRightIndex = numRequest;
+  
+  int hasJump = 0;
+
+  // sort all elements in increasing order
+  qsort(request, numRequest, sizeof(int), cmpfunc);
+
+  // find index of first element to the right of start position
+  int i = 0;
+  while (i < numRequest) {
+    if (request[i] >= START) {
+      firstRightIndex = i;
+      if (firstRightIndex > 0) {
+        hasJump = 1;
+      }
+      break;
+    }
+    i++;
+  }
+
+  // scan through all elements on the right
+  for (i = firstRightIndex; i < numRequest; i++) {
+    requestCSCAN[numCSCAN] = request[i];
+    numCSCAN++;
+  }
+
+  // if jump, we need to record the jump from extremities
+  if (hasJump) {
+    requestCSCAN[numCSCAN] = 199;
+    numCSCAN++;
+    requestCSCAN[numCSCAN] = 0;
+    numCSCAN++;
+
+    // scan forward from left to centre
+    for (i = 0; i < firstRightIndex; i++) {
+      requestCSCAN[numCSCAN] = request[i];
+      numCSCAN++;
+    }
+  }
+
   printf("\n----------------\n");
   printf("CSCAN :");
-  // printSeqNPerformance(newRequest, newCnt);
+  printSeqNPerformance(requestCSCAN, numCSCAN);
   printf("----------------\n");
   return;
 }
@@ -166,7 +209,7 @@ void accessCSCAN(int *request, int numRequest)
 //access the disk location in LOOK
 void accessLOOK(int *request, int numRequest)
 {
-  //write your logic here
+  
   printf("\n----------------\n");
   printf("LOOK :");
   // printSeqNPerformance(newRequest, newCnt);
