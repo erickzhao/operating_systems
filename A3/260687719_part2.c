@@ -102,7 +102,7 @@ void accessSSTF(int *request, int numRequest)
 
   printf("\n----------------\n");
   printf("SSTF :");
-  printSeqNPerformance(request, numRequest);
+  printSeqNPerformance(requestSSTF, numSSTF);
   printf("----------------\n");
   return;
 }
