@@ -256,10 +256,53 @@ void accessLOOK(int *request, int numRequest)
 //access the disk location in CLOOK
 void accessCLOOK(int *request, int numRequest)
 {
-  //write your logic here
+  int numCLOOK = 0;
+  // allocate 2 more int slots in case we need to jump (record 199 and 0)
+  int *requestCLOOK = malloc(sizeof(request) + 2*sizeof(int));
+
+  // keep index of first element to the right of element
+  // default value: no elements to right
+  int firstRightIndex = numRequest;
+  
+  int hasJump = 0;
+
+  // sort all elements in increasing order
+  qsort(request, numRequest, sizeof(int), cmpfunc);
+
+  // find index of first element to the right of start position
+  int i = 0;
+  while (i < numRequest) {
+    if (request[i] >= START) {
+      firstRightIndex = i;
+      if (firstRightIndex > 0) {
+        hasJump = 1;
+      }
+      break;
+    }
+    i++;
+  }
+
+  // scan through all elements on the right
+  for (i = firstRightIndex; i < numRequest; i++) {
+    requestCLOOK[numCLOOK] = request[i];
+    numCLOOK++;
+  }
+
+  // if jump, we need to record the jump from extremities
+  if (hasJump) {
+    // go straight from last rightward item to left extremity
+    requestCLOOK[numCLOOK] = 0;
+    numCLOOK++;
+
+    // scan forward from left to centre
+    for (i = 0; i < firstRightIndex; i++) {
+      requestCLOOK[numCLOOK] = request[i];
+      numCLOOK++;
+    }
+  }
   printf("\n----------------\n");
   printf("CLOOK :");
-  // printSeqNPerformance(newRequest,newCnt);
+  printSeqNPerformance(requestCLOOK, numCLOOK);
   printf("----------------\n");
   return;
 }
