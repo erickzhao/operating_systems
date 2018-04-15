@@ -110,11 +110,42 @@ void accessSSTF(int *request, int numRequest)
 //access the disk location in SCAN
 void accessSCAN(int *request, int numRequest)
 {
+  int numSCAN = 0;
+  int *isAccessed = malloc(sizeof(request));
+  int *requestSCAN = malloc(sizeof(request));
+
+  // keep index of first element to the right
+  int firstRightIndex = INT_MIN;
+
+  // sort all elements in increasing order
+  qsort(request, numRequest, sizeof(int), cmpfunc);
+
+  // find index of first element to the right of start position
+  int i = 0;
+  while (i < numRequest) {
+    if (request[i] >= START) {
+      firstRightIndex = i;
+      break;
+    }
+    i++;
+  }
+
+  // scan through all elements on the right
+  for (i = firstRightIndex; i < numRequest; i++) {
+    requestSCAN[numSCAN] = request[i];
+    numSCAN++;
+  }
+
+  // scan backwards from the centre to the leftmost item
+  for (i = firstRightIndex - 1; i >= 0; i--) {
+    requestSCAN[numSCAN] = request[i];
+    numSCAN++;
+  }
 
   //write your logic here
   printf("\n----------------\n");
   printf("SCAN :");
-  // printSeqNPerformance(newRequest, newCnt);
+  printSeqNPerformance(requestSCAN, numSCAN);
   printf("----------------\n");
   return;
 }
