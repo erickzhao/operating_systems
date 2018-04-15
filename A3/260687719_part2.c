@@ -111,7 +111,7 @@ void accessSSTF(int *request, int numRequest)
 void accessSCAN(int *request, int numRequest)
 {
   int numSCAN = 0;
-  int *requestSCAN = malloc(sizeof(request));
+  int *requestSCAN = malloc(sizeof(request) + sizeof(int));
 
   // keep index of first element to the right of element
   // default value: no elements to right
@@ -136,13 +136,19 @@ void accessSCAN(int *request, int numRequest)
     numSCAN++;
   }
 
+  // if we need to go in inverse direction,
+  // note that we reached the max location
+  if (firstRightIndex > 0) {
+    requestSCAN[numSCAN] = 199;
+    numSCAN++;
+  }
+
   // scan backwards from the centre to the leftmost item
   for (i = firstRightIndex - 1; i >= 0; i--) {
     requestSCAN[numSCAN] = request[i];
     numSCAN++;
   }
 
-  //write your logic here
   printf("\n----------------\n");
   printf("SCAN :");
   printSeqNPerformance(requestSCAN, numSCAN);
@@ -209,10 +215,40 @@ void accessCSCAN(int *request, int numRequest)
 //access the disk location in LOOK
 void accessLOOK(int *request, int numRequest)
 {
-  
+  int numLOOK = 0;
+  int *requestLOOK = malloc(sizeof(request));
+
+  // keep index of first element to the right of element
+  // default value: no elements to right
+  int firstRightIndex = numRequest;
+
+  // sort all elements in increasing order
+  qsort(request, numRequest, sizeof(int), cmpfunc);
+
+  // find index of first element to the right of start position
+  int i = 0;
+  while (i < numRequest) {
+    if (request[i] >= START) {
+      firstRightIndex = i;
+      break;
+    }
+    i++;
+  }
+
+  // scan through all elements on the right
+  for (i = firstRightIndex; i < numRequest; i++) {
+    requestLOOK[numLOOK] = request[i];
+    numLOOK++;
+  }
+
+  // scan backwards from the centre to the leftmost item
+  for (i = firstRightIndex - 1; i >= 0; i--) {
+    requestLOOK[numLOOK] = request[i];
+    numLOOK++;
+  }
   printf("\n----------------\n");
   printf("LOOK :");
-  // printSeqNPerformance(newRequest, newCnt);
+  printSeqNPerformance(requestLOOK, numLOOK);
   printf("----------------\n");
   return;
 }
