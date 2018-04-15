@@ -114,8 +114,9 @@ void accessSCAN(int *request, int numRequest)
   int *isAccessed = malloc(sizeof(request));
   int *requestSCAN = malloc(sizeof(request));
 
-  // keep index of first element to the right
-  int firstRightIndex = INT_MIN;
+  // keep index of first element to the right of element
+  // default value: no elements to right
+  int firstRightIndex = numRequest;
 
   // sort all elements in increasing order
   qsort(request, numRequest, sizeof(int), cmpfunc);
@@ -141,6 +142,7 @@ void accessSCAN(int *request, int numRequest)
     requestSCAN[numSCAN] = request[i];
     numSCAN++;
   }
+
 
   //write your logic here
   printf("\n----------------\n");
