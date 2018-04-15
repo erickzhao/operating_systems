@@ -111,6 +111,7 @@ void accessSSTF(int *request, int numRequest)
 void accessSCAN(int *request, int numRequest)
 {
   int numSCAN = 0;
+  int isRight = START - 100 >= 0;
   int *requestSCAN = malloc(sizeof(request) + sizeof(int));
 
   // keep index of first element to the right of element
@@ -130,23 +131,46 @@ void accessSCAN(int *request, int numRequest)
     i++;
   }
 
-  // scan through all elements on the right
-  for (i = firstRightIndex; i < numRequest; i++) {
-    requestSCAN[numSCAN] = request[i];
-    numSCAN++;
-  }
+  // start towards whichever side is closer
+  if (isRight) {
+    // scan through all elements on the right
+    for (i = firstRightIndex; i < numRequest; i++) {
+      requestSCAN[numSCAN] = request[i];
+      numSCAN++;
+    }
 
-  // if we need to go in inverse direction,
-  // note that we reached the max location
-  if (firstRightIndex > 0) {
-    requestSCAN[numSCAN] = 199;
-    numSCAN++;
-  }
+    // if we need to go in inverse direction,
+    // note that we reached the max location
+    if (firstRightIndex > 0) {
+      requestSCAN[numSCAN] = 199;
+      numSCAN++;
+    }
 
-  // scan backwards from the centre to the leftmost item
-  for (i = firstRightIndex - 1; i >= 0; i--) {
-    requestSCAN[numSCAN] = request[i];
-    numSCAN++;
+    // scan backwards from the centre to the leftmost item
+    for (i = firstRightIndex - 1; i >= 0; i--) {
+      requestSCAN[numSCAN] = request[i];
+      numSCAN++;
+    }
+  } else {
+    // scan backwards from the centre to the leftmost item
+    for (i = firstRightIndex - 1; i >= 0; i--) {
+      requestSCAN[numSCAN] = request[i];
+      numSCAN++;
+    }
+
+    // if we need to go in inverse direction,
+    // (i.e. there exists a valid first right index)
+    // note that we reached the min location
+    if (firstRightIndex < numRequest) {
+      requestSCAN[numSCAN] = 0;
+      numSCAN++;
+    }
+
+    // scan through all elements on the right
+    for (i = firstRightIndex; i < numRequest; i++) {
+      requestSCAN[numSCAN] = request[i];
+      numSCAN++;
+    }
   }
 
   printf("\n----------------\n");
@@ -160,6 +184,7 @@ void accessSCAN(int *request, int numRequest)
 void accessCSCAN(int *request, int numRequest)
 {
   int numCSCAN = 0;
+  int isRight = START - 100 >= 0;
   // allocate 2 more int slots in case we need to jump (record 199 and 0)
   int *requestCSCAN = malloc(sizeof(request) + 2*sizeof(int));
 
@@ -177,7 +202,10 @@ void accessCSCAN(int *request, int numRequest)
   while (i < numRequest) {
     if (request[i] >= START) {
       firstRightIndex = i;
-      if (firstRightIndex > 0) {
+      // if starting right and we have items on left of start
+      // or if starting left and we have items on right of start
+      // indicate that we have to make a jump
+      if ((isRight && firstRightIndex > 0) || (!isRight && firstRightIndex < numRequest)) {
         hasJump = 1;
       }
       break;
@@ -185,21 +213,43 @@ void accessCSCAN(int *request, int numRequest)
     i++;
   }
 
-  // scan through all elements on the right
-  for (i = firstRightIndex; i < numRequest; i++) {
-    requestCSCAN[numCSCAN] = request[i];
-    numCSCAN++;
-  }
+  if (isRight) {
+    // scan through all elements from centre to right
+    for (i = firstRightIndex; i < numRequest; i++) {
+      requestCSCAN[numCSCAN] = request[i];
+      numCSCAN++;
+    }
 
-  // if jump, we need to record the jump from extremities
-  if (hasJump) {
-    requestCSCAN[numCSCAN] = 199;
-    numCSCAN++;
-    requestCSCAN[numCSCAN] = 0;
-    numCSCAN++;
+    // if jump, we need to record the jump from extremities
+    if (hasJump) {
+      requestCSCAN[numCSCAN] = 199;
+      numCSCAN++;
+      requestCSCAN[numCSCAN] = 0;
+      numCSCAN++;
+    }
 
-    // scan forward from left to centre
+    // scan through all elements from left to centre
     for (i = 0; i < firstRightIndex; i++) {
+      requestCSCAN[numCSCAN] = request[i];
+      numCSCAN++;
+    }
+  } else {
+    // scan through all elements from centre to left
+    for (i = firstRightIndex - 1; i >= 0; i--) {
+      requestCSCAN[numCSCAN] = request[i];
+      numCSCAN++;
+    }
+
+    // if jump, we need to record the jump from extremities
+    if (hasJump) {
+      requestCSCAN[numCSCAN] = 0;
+      numCSCAN++;
+      requestCSCAN[numCSCAN] = 199;
+      numCSCAN++;
+    }
+
+    // scan through all elements from right to start
+    for (i = numRequest - 1; i >= firstRightIndex; i--) {
       requestCSCAN[numCSCAN] = request[i];
       numCSCAN++;
     }
@@ -216,7 +266,8 @@ void accessCSCAN(int *request, int numRequest)
 void accessLOOK(int *request, int numRequest)
 {
   int numLOOK = 0;
-  int *requestLOOK = malloc(sizeof(request));
+  int isRight = START - 100 >= 0;
+  int *requestLOOK = malloc(sizeof(request) + sizeof(int));
 
   // keep index of first element to the right of element
   // default value: no elements to right
@@ -235,16 +286,38 @@ void accessLOOK(int *request, int numRequest)
     i++;
   }
 
-  // scan through all elements on the right
-  for (i = firstRightIndex; i < numRequest; i++) {
-    requestLOOK[numLOOK] = request[i];
-    numLOOK++;
-  }
+  // start towards whichever side is closer
+  if (isRight) {
+    // scan through all elements on the right
+    for (i = firstRightIndex; i < numRequest; i++) {
+      requestLOOK[numLOOK] = request[i];
+      numLOOK++;
+    }
 
-  // scan backwards from the centre to the leftmost item
-  for (i = firstRightIndex - 1; i >= 0; i--) {
-    requestLOOK[numLOOK] = request[i];
-    numLOOK++;
+    // if we need to go in inverse direction,
+    // note that we reached the max location
+    if (firstRightIndex > 0) {
+      requestLOOK[numLOOK] = 199;
+      numLOOK++;
+    }
+
+    // scan backwards from the centre to the leftmost item
+    for (i = firstRightIndex - 1; i >= 0; i--) {
+      requestLOOK[numLOOK] = request[i];
+      numLOOK++;
+    }
+  } else {
+    // scan backwards from the centre to the leftmost item
+    for (i = firstRightIndex - 1; i >= 0; i--) {
+      requestLOOK[numLOOK] = request[i];
+      numLOOK++;
+    }
+
+    // scan through all elements on the right
+    for (i = firstRightIndex; i < numRequest; i++) {
+      requestLOOK[numLOOK] = request[i];
+      numLOOK++;
+    }
   }
   printf("\n----------------\n");
   printf("LOOK :");
@@ -257,6 +330,7 @@ void accessLOOK(int *request, int numRequest)
 void accessCLOOK(int *request, int numRequest)
 {
   int numCLOOK = 0;
+  int isRight = START - 100 >= 0;
   // allocate 2 more int slots in case we need to jump (record 199 and 0)
   int *requestCLOOK = malloc(sizeof(request) + 2*sizeof(int));
 
@@ -274,7 +348,10 @@ void accessCLOOK(int *request, int numRequest)
   while (i < numRequest) {
     if (request[i] >= START) {
       firstRightIndex = i;
-      if (firstRightIndex > 0) {
+      // if starting right and we have items on left of start
+      // or if starting left and we have items on right of start
+      // indicate that we have to make a jump
+      if ((isRight && firstRightIndex > 0) || (!isRight && firstRightIndex < numRequest)) {
         hasJump = 1;
       }
       break;
@@ -282,24 +359,44 @@ void accessCLOOK(int *request, int numRequest)
     i++;
   }
 
-  // scan through all elements on the right
-  for (i = firstRightIndex; i < numRequest; i++) {
-    requestCLOOK[numCLOOK] = request[i];
-    numCLOOK++;
-  }
+  if (isRight) {
+    // scan through all elements from centre to right
+    for (i = firstRightIndex; i < numRequest; i++) {
+      requestCLOOK[numCLOOK] = request[i];
+      numCLOOK++;
+    }
 
-  // if jump, we need to record the jump from extremities
-  if (hasJump) {
-    // go straight from last rightward item to left extremity
-    requestCLOOK[numCLOOK] = 0;
-    numCLOOK++;
+    // if jump, we need to record the jump from extremities
+    if (hasJump) {
+      requestCLOOK[numCLOOK] = 0;
+      numCLOOK++;
+    }
 
-    // scan forward from left to centre
+    // scan through all elements from left to centre
     for (i = 0; i < firstRightIndex; i++) {
       requestCLOOK[numCLOOK] = request[i];
       numCLOOK++;
     }
+  } else {
+    // scan through all elements from centre to left
+    for (i = firstRightIndex - 1; i >= 0; i--) {
+      requestCLOOK[numCLOOK] = request[i];
+      numCLOOK++;
+    }
+
+    // if jump, we need to record the jump from extremities
+    if (hasJump) {
+      requestCLOOK[numCLOOK] = 199;
+      numCLOOK++;
+    }
+
+    // scan through all elements from right to start
+    for (i = numRequest - 1; i >= firstRightIndex; i--) {
+      requestCLOOK[numCLOOK] = request[i];
+      numCLOOK++;
+    }
   }
+
   printf("\n----------------\n");
   printf("CLOOK :");
   printSeqNPerformance(requestCLOOK, numCLOOK);
