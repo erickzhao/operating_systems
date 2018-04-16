@@ -8,6 +8,7 @@
 
 int *avail, **max, **need, **hold, numProcesses, numResources;
 pthread_mutex_t lock;
+pthread_mutex_t lock2;
 
 int isAvail(int pr_id, int* request_vector) {
   int j;
@@ -102,17 +103,17 @@ int bankers_algorithm(int pr_id, int* request_vector) {
     hold[pr_id][j] = hold[pr_id][j] + request_vector[j];
     need[pr_id][j] = need[pr_id][j] - request_vector[j];
   }
-  printf("Checking if allocation is safe...\n");
+  printf("[%d] Checking if allocation is safe...\n", pr_id);
   safe = isSafe();
   if (!safe) {
-    printf("Allocation is not safe! Cancelling...\n");
+    printf("[%d] Allocation is not safe! Cancelling.\n", pr_id);
     for (j=0;j<numResources;j++) {
       avail[j] = avail[j] + request_vector[j];
       hold[pr_id][j] = hold[pr_id][j] - request_vector[j];
       need[pr_id][j] = need[pr_id][j] + request_vector[j];
     }
   } else {
-    printf("System is safe! Allocating...\n");
+    printf("[%d] System is safe! Allocating.\n", pr_id);
   }
   pthread_mutex_unlock(&lock);
   
@@ -125,17 +126,18 @@ void* process_simulator(void* pr_id) {
   printf("Initializing process %d...\n", id);
   int j;
   while (1) {
-    printf("Requesting resources for process %d...\n", id);
     // 2. randomly generate request vector
     int *req = malloc(numResources*sizeof(int));
     // populate request vector with random number between 0 and need[j]
-    printf("The resource vector requested array is: ");
+    pthread_mutex_lock(&lock2);
+    printf("[%d] The resource vector requested array is: ", id);
     for (j=0; j<numResources;j++) {
       int rnd = rand()%(need[id][j] + 1);
       req[j] = rnd;
       printf("%d ", req[j]);
     }
     printf("\n");
+    pthread_mutex_unlock(&lock2);
 
     // 3. run bankers
     // 4. inside banker's alg, resources are acquired
@@ -155,7 +157,7 @@ void* process_simulator(void* pr_id) {
     }
 
     if (isDone) {
-      printf("Allocation done! Freeing resources and exiting process %d...\n", id);
+      printf("Allocation done! Freeing resources and exiting process %d.\n", id);
       pthread_mutex_lock(&lock);
       for(j=0; j<numResources;j++) {
         avail[j] = avail[j] + hold[id][j];
@@ -256,6 +258,9 @@ int main() {
 
   for (i=0; i<numProcesses; i++) {
     pthread_create((void*) &threads[i], NULL, &process_simulator, (void *)(intptr_t)i);
+  }
+
+  for (i=0; i<numProcesses; i++) {
     pthread_join(threads[i], NULL);
   }
 
