@@ -303,11 +303,5 @@ int main() {
   
   pthread_create((void*) &faulty_thread, NULL, &fault_simulator, (void *)(intptr_t)-1);
 
-  for (i=0; i<numProcesses; i++) {
-    pthread_join(threads[i], NULL);
-  }
-
-  pthread_join(faulty_thread, NULL);
-
   pthread_exit(NULL);
 }

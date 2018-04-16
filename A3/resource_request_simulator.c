@@ -259,10 +259,6 @@ int main() {
   for (i=0; i<numProcesses; i++) {
     pthread_create((void*) &threads[i], NULL, &process_simulator, (void *)(intptr_t)i);
   }
-
-  for (i=0; i<numProcesses; i++) {
-    pthread_join(threads[i], NULL);
-  }
-
+  
   pthread_exit(NULL);
 }
