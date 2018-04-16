@@ -36,7 +36,6 @@ int isSafe() {
   }
 
   while(1) {
-
     // no selected index at first
     int selectedIndex = INT_MIN;
 
@@ -117,13 +116,13 @@ int bankers_algorithm(int pr_id, int* request_vector) {
   }
   pthread_mutex_unlock(&lock);
   
-
   return safe;
 }
 
 void* process_simulator(void* pr_id) {
   // 1. process begins
   int id = (int) pr_id;
+  printf("Initializing process %d...\n", id);
   int j;
   while (1) {
     printf("Requesting resources for process %d...\n", id);
@@ -142,7 +141,7 @@ void* process_simulator(void* pr_id) {
     // 4. inside banker's alg, resources are acquired
     // 6. repeat continuously until safe allocation is found
     while(!bankers_algorithm(id, req)) {
-      sleep(10);
+      sleep(1);
     };
 
     // 5. check if any requests remaining
@@ -156,6 +155,7 @@ void* process_simulator(void* pr_id) {
     }
 
     if (isDone) {
+      printf("Allocation done! Freeing resources and exiting process %d...\n", id);
       pthread_mutex_lock(&lock);
       for(j=0; j<numResources;j++) {
         avail[j] = avail[j] + hold[id][j];
@@ -164,7 +164,7 @@ void* process_simulator(void* pr_id) {
       pthread_mutex_unlock(&lock);
       break;
     } else {
-      sleep(3000);
+      sleep(3);
     }
   }
 
