@@ -59,8 +59,7 @@ void accessFCFS(int *request, int numRequest)
 //access the disk location in SSTF
 void accessSSTF(int *request, int numRequest)
 {
-
-  // create array to keep track of which indexes are unused
+  // create array to keep track of which indexes have already been accessed
   // initialize all indexes to 0
   int *isAccessed = malloc(sizeof(request));
   int i;

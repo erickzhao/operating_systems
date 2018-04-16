@@ -124,7 +124,7 @@ int bankers_algorithm(int pr_id, int* request_vector) {
 
 void* process_simulator(void* pr_id) {
   // 1. process begins
-  int id = (int) pr_id;
+  int id = (intptr_t) pr_id;
   printf("Initializing process %d...\n", id);
   int j;
   while (1) {
@@ -144,8 +144,11 @@ void* process_simulator(void* pr_id) {
     // 3. run bankers
     // 4. inside banker's alg, resources are acquired
     // 6. repeat continuously until safe allocation is found
-    while(!bankers_algorithm(id, req)) {
+    // if fails too many times, try breaking loop and generating new random vector...
+    int failCount = 0;
+    while(!bankers_algorithm(id, req) && failCount < 5) {
       sleep(1);
+      failCount++;
     };
 
     // 5. check if any requests remaining
@@ -175,38 +178,49 @@ void* process_simulator(void* pr_id) {
   return 0;
 }
 
-void* fault_simulator(void* pr_id) {
-  while(terminatedThreads < numProcesses) {
-    int resourceIndex = rand()%(numResources);
-    int hasFault = rand()%2;
-    int i,j;
-    
-    if (hasFault && avail[resourceIndex] > 0) {
-      printf("[F] Fault occurred in resource %d! \n", resourceIndex);
-      avail[resourceIndex] = avail[resourceIndex] - 1;
-    }
 
-    int hasDeadlock = 1;
-    for (i=0;i<numProcesses;i++) {
-      int areAllResourcesAvailable = 1;
-      for (j=0;j<numResources;j++) {
-        if (need[i][j] > avail[j]) {
-          areAllResourcesAvailable = 0;
-          break;
-        }
-      }
-
-      if (areAllResourcesAvailable) {
-        hasDeadlock = 0;
+// check if deadlock:
+void deadlock_checker() {
+  int i,j;
+  // if any process has all its resources available,
+  // then we aren't in a deadlock state
+  int hasDeadlock = 1;
+  for (i=0;i<numProcesses;i++) {
+    int areAllResourcesAvailable = 1;
+    for (j=0;j<numResources;j++) {
+      if (need[i][j] > avail[j]) {
+        areAllResourcesAvailable = 0;
         break;
       }
     }
 
-    if (hasDeadlock) {
-      printf("Deadlock will occur as processes request more resources, exiting...\n");
-      exit(0);
+    if (areAllResourcesAvailable) {
+      hasDeadlock = 0;
+      break;
     }
+  }
 
+  // quit if deadlock occurs
+  if (hasDeadlock) {
+    printf("Deadlock will occur as processes request more resources, exiting...\n");
+    exit(0);
+  } else {
+    printf("No deadlock detected yet!\n");
+  }
+}
+
+void* fault_simulator(void* pr_id) {
+  while(terminatedThreads < numProcesses) {
+    int resourceIndex = rand()%(numResources);
+    int hasFault = rand()%2; // 50% chance of generating a fault
+    int i,j;
+    
+    // only generate fault if chosen index has available resources
+    if (hasFault && avail[resourceIndex] > 0) {
+      printf("[F] Fault occurred in resource %d! \n", resourceIndex);
+      avail[resourceIndex] = avail[resourceIndex] - 1;
+    }
+    deadlock_checker();
     sleep(10);
   }
 
