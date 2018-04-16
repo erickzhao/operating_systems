@@ -10,6 +10,8 @@ int *avail, **max, **need, **hold, numProcesses, numResources;
 pthread_mutex_t lock;
 pthread_mutex_t lock2;
 
+int terminatedThreads = 0;
+
 int isAvail(int pr_id, int* request_vector) {
   int j;
   for (j=0; j<numResources; j++) {
@@ -169,6 +171,44 @@ void* process_simulator(void* pr_id) {
       sleep(3);
     }
   }
+  terminatedThreads++;
+  return 0;
+}
+
+void* fault_simulator(void* pr_id) {
+  while(terminatedThreads < numProcesses) {
+    int resourceIndex = rand()%(numResources);
+    int hasFault = rand()%2;
+    int i,j;
+    
+    if (hasFault && avail[resourceIndex] > 0) {
+      printf("[F] Fault occurred in resource %d! \n", resourceIndex);
+      avail[resourceIndex] = avail[resourceIndex] - 1;
+    }
+
+    int hasDeadlock = 1;
+    for (i=0;i<numProcesses;i++) {
+      int areAllResourcesAvailable = 1;
+      for (j=0;j<numResources;j++) {
+        if (need[i][j] > avail[j]) {
+          areAllResourcesAvailable = 0;
+          break;
+        }
+      }
+
+      if (areAllResourcesAvailable) {
+        hasDeadlock = 0;
+        break;
+      }
+    }
+
+    if (hasDeadlock) {
+      printf("Deadlock will occur as processes request more resources, exiting...\n");
+      exit(0);
+    }
+
+    sleep(10);
+  }
 
   return 0;
 }
@@ -255,14 +295,19 @@ int main() {
 
   printf("Initializing %d processes...\n", numProcesses);
   pthread_t threads[numProcesses];
+  pthread_t faulty_thread;
 
   for (i=0; i<numProcesses; i++) {
     pthread_create((void*) &threads[i], NULL, &process_simulator, (void *)(intptr_t)i);
   }
+  
+  pthread_create((void*) &faulty_thread, NULL, &fault_simulator, (void *)(intptr_t)-1);
 
   for (i=0; i<numProcesses; i++) {
     pthread_join(threads[i], NULL);
   }
+
+  pthread_join(faulty_thread, NULL);
 
   pthread_exit(NULL);
 }
